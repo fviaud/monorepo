@@ -1,0 +1,22 @@
+# Build l'image depuis la racine du monorepo
+docker_build(
+    'localhost:5000/frontend',
+    context='..',
+    dockerfile='../apps/frontend/dockerfile',
+     live_update=[
+        sync('../apps/frontend', '/opt/app/apps/frontend'),
+        run('cd /opt/app && pnpm install', trigger=['../apps/frontend/package.json']),
+    ],
+)
+docker_build(
+    'localhost:5000/backend',
+    context='..',
+    dockerfile='../apps/backend/dockerfile',
+     live_update=[
+        sync('../apps/backend', '/opt/app/apps/backend'),
+    ],
+)
+
+# Déployer le manifest Kubernetes
+k8s_yaml('frontend.yml')
+k8s_yaml('backend.yml')
