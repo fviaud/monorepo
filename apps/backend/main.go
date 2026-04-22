@@ -3,13 +3,12 @@ package main
 import (
 	"log"
 
-	"backend/internal/handler"
 	"backend/internal/router"
 )
 
 func main() {
-	h := handler.New()
-	r := router.New(h)
+
+	r := router.New()
 
 	addr := ":8080"
 	log.Printf("Server starting on %s", addr)

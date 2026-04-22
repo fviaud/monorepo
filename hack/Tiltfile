@@ -2,17 +2,31 @@
 docker_build(
     'localhost:5000/frontend',
     context='..',
-    dockerfile='../apps/frontend/dockerfile',
-     live_update=[
+    dockerfile='../apps/frontend/dockerfile-tilt',
+    only=[
+        'apps/frontend',
+        'packages',
+        'pnpm-lock.yaml',
+        'pnpm-workspace.yaml',
+        'package.json',
+    ],
+    live_update=[
         sync('../apps/frontend', '/opt/app/apps/frontend'),
-        run('cd /opt/app && pnpm install', trigger=['../apps/frontend/package.json']),
+        # run('cd /opt/app && pnpm install', trigger=['../apps/frontend/package.json']),
     ],
 )
 docker_build(
     'localhost:5000/backend',
     context='..',
-    dockerfile='../apps/backend/dockerfile',
-     live_update=[
+    dockerfile='../apps/backend/dockerfile-tilt',
+    only=[
+        'apps/backend',
+        'packages',
+        'pnpm-lock.yaml',
+        'pnpm-workspace.yaml',
+        'package.json',
+    ],
+    live_update=[
         sync('../apps/backend', '/opt/app/apps/backend'),
     ],
 )

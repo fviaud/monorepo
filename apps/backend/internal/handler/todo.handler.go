@@ -10,56 +10,49 @@ import (
 	"github.com/google/uuid"
 )
 
-type Handler struct {
+type TodoHandler struct {
 	mu    sync.RWMutex
-	items map[string]models.Product
+	items map[string]models.Todo
 }
 
-func New() *Handler {
-	return &Handler{
-		items: make(map[string]models.Product),
+func NewTodoHandler() *TodoHandler {
+	return &TodoHandler{
+		items: make(map[string]models.Todo),
 	}
 }
 
-func (h *Handler) Health(c *gin.Context) {
+func (h *TodoHandler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-func (h *Handler) ListItems(c *gin.Context) {
+func (h *TodoHandler) ListItems(c *gin.Context) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	items := make([]models.Product, 0, len(h.items))
+	items := make([]models.Todo, 0, len(h.items))
 	for _, item := range h.items {
 		items = append(items, item)
 	}
 	c.JSON(http.StatusOK, items)
 }
 
-func (h *Handler) CreateItem(c *gin.Context) {
-	var newProduct models.Product
-	if err := c.ShouldBindJSON(&newProduct); err != nil {
+func (h *TodoHandler) CreateItem(c *gin.Context) {
+	var newTodo models.Todo
+	if err := c.ShouldBindJSON(&newTodo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
-	}
-
-	for _, p := range h.items {
-		if p.Name == newProduct.Name {
-			c.JSON(http.StatusConflict, gin.H{"error": "name already exists"})
-			return
-		}
 	}
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
 	id := uuid.New()
-	newProduct.ID = id
-	h.items[id.String()] = newProduct
-	c.JSON(http.StatusCreated, newProduct)
+	newTodo.ID = id
+	h.items[id.String()] = newTodo
+	c.JSON(http.StatusCreated, newTodo)
 }
 
-func (h *Handler) GetItem(c *gin.Context) {
+func (h *TodoHandler) GetItem(c *gin.Context) {
 	id := c.Param("id")
 
 	h.mu.RLock()
@@ -73,10 +66,10 @@ func (h *Handler) GetItem(c *gin.Context) {
 	c.JSON(http.StatusOK, item)
 }
 
-func (h *Handler) UpdateItem(c *gin.Context) {
+func (h *TodoHandler) UpdateItem(c *gin.Context) {
 	id := c.Param("id")
 
-	var item models.Product
+	var item models.Todo
 	if err := c.ShouldBindJSON(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
@@ -99,7 +92,7 @@ func (h *Handler) UpdateItem(c *gin.Context) {
 	c.JSON(http.StatusOK, item)
 }
 
-func (h *Handler) DeleteItem(c *gin.Context) {
+func (h *TodoHandler) DeleteItem(c *gin.Context) {
 	id := c.Param("id")
 
 	h.mu.Lock()
