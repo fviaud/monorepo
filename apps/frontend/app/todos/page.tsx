@@ -1,5 +1,6 @@
 import { fetchApi } from "@/lib/api"
 import { Todo, TodoSchema } from "@/models/todo.model"
+import Link from "next/link"
 export const dynamic = "force-dynamic"
 
 export default async function Page() {
@@ -19,7 +20,17 @@ export default async function Page() {
   return (
     <ul>
       {items.map((item: Todo) => (
-        <li key={item.id}>{item.title}</li>
+        <li key={item.id}>
+          {item.title}
+          {item.completed ? " (Completed)" : " (Pending)"}
+          <Link
+            href={`/todos/${item.id}`}
+            prefetch={false}
+            style={{ marginLeft: "10px" }}
+          >
+            Edit
+          </Link>
+        </li>
       ))}
     </ul>
   )

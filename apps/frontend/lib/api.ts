@@ -17,3 +17,19 @@ export async function fetchApi<T>(
   const data = await response.json()
   return schema.parse(data)
 }
+
+export async function mutateApi(
+  url: string,
+  method: "POST" | "PUT" | "DELETE",
+  body?: unknown
+): Promise<void> {
+  const response = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`)
+  }
+}
