@@ -1,35 +1,29 @@
-import { mutateApi } from "@/lib/api"
-import { redirect } from "next/navigation"
+"use client"
+import { createTodo } from "@/lib/actionsTodo"
+import { TodoSchema } from "@/models/todo.model"
+import type { IChangeEvent } from "@rjsf/core"
+import { withTheme } from "@rjsf/core"
+import { Theme as shadcnTheme } from "@rjsf/shadcn"
+import validator from "@rjsf/validator-ajv8"
+import { Button } from "@workspace/ui/components/button"
+import { zodToJsonSchema } from "zod-to-json-schema"
+
+const Form = withTheme(shadcnTheme)
+const jsonSchema = zodToJsonSchema(TodoSchema.pick({ title: true })) as Record<
+  string,
+  unknown
+>
 
 export default function AddTodoPage() {
-  async function createTodo(formData: FormData) {
-    "use server"
-
-    const apiUrl = process.env.API_URL || "http://localhost:8080"
-    const apiVersion = process.env.API_VERSION || "v1"
-
-    const title = formData.get("title") as string
-    const completed = formData.get("completed") === "on"
-
-    await mutateApi(`${apiUrl}/api/${apiVersion}/todos`, "POST", {
-      title,
-      completed,
-    })
-
-    redirect("/todos")
+  function handleSubmit({ formData }: IChangeEvent) {
+    const fd = new FormData()
+    fd.set("title", formData.title)
+    createTodo(fd)
   }
 
   return (
-    <form action={createTodo}>
-      <label htmlFor="title">Title</label>
-      <input id="title" name="title" type="text" required />
-
-      <label htmlFor="completed">
-        <input id="completed" name="completed" type="checkbox" />
-        Completed
-      </label>
-
-      <button type="submit">Add Todo</button>
-    </form>
+    <Form schema={jsonSchema} validator={validator} onSubmit={handleSubmit}>
+      <Button type="submit">Create Todo</Button>
+    </Form>
   )
 }

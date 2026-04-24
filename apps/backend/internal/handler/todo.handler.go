@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -74,6 +75,9 @@ func (h *TodoHandler) UpdateItem(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
+
+	fmt.Printf("Received update for fred ID %s: %+v\n", id, item)
+
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})

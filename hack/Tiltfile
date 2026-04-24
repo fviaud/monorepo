@@ -27,7 +27,7 @@ docker_build(
         'package.json',
     ],
     live_update=[
-        sync('../apps/backend', '/opt/app/apps/backend'),
+        sync('../apps/backend', '/opt/app'),
     ],
 )
 
