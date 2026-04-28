@@ -11,9 +11,9 @@ import { zodToJsonSchema } from "zod-to-json-schema"
 
 const Form = withTheme(shadcnTheme)
 
-const fields = ["title", "completed"] as const
-
+const fields = ["title", "completed"]
 type TodoPickFields = Partial<Record<keyof typeof TodoSchema.shape, true>>
+
 const result = Object.fromEntries(
   fields.map((f) => [f, true])
 ) as TodoPickFields
@@ -25,24 +25,8 @@ const jsonSchema = zodToJsonSchema(TodoSchema.pick(result)) as Record<
 
 const widgets = {
   CheckboxWidget: ({ value, onChange }: any) => (
-    <label className="flex items-center gap-2">
-      <span>Completed</span>
-      <Switch checked={!!value} onCheckedChange={onChange} />
-    </label>
+    <Switch checked={!!value} onCheckedChange={onChange} />
   ),
-}
-
-const uiSchema = {
-  title: {
-    "ui:options": {
-      classNames: "capitalize",
-    },
-  },
-  completed: {
-    "ui:options": {
-      classNames: "capitalize",
-    },
-  },
 }
 
 export default function UpdateTodo({ todo }: { todo: Todo }) {
@@ -56,23 +40,10 @@ export default function UpdateTodo({ todo }: { todo: Todo }) {
   }
 
   const { title, completed } = todo
-
-  function pick<T, K extends readonly (keyof T)[]>(
-    obj: T,
-    keys: K
-  ): Pick<T, K[number]> {
-    return Object.fromEntries(keys.map((key) => [key, obj[key]])) as Pick<
-      T,
-      K[number]
-    >
-  }
-  const result = pick(todo, fields)
-
   return (
     <Form
       schema={jsonSchema}
-      uiSchema={uiSchema}
-      formData={result}
+      formData={{ title, completed }}
       validator={validator}
       onSubmit={handleSubmit}
       widgets={widgets}

@@ -12,5 +12,9 @@ export default async function EditTodoPage({
   const { id } = await params
   const todo = await getTodo(id)
 
-  return <Formulaire todo={todo} />
+  return (
+    <div className="container mx-auto">
+      <Formulaire todo={todo} />
+    </div>
+  )
 }
