@@ -1,6 +1,6 @@
 "use client"
 import { updateTodo } from "@/lib/actionsTodo"
-import { Todo, TodoSchema } from "@/models/todo.model"
+import { Todo, TodoUpdateSchema } from "@/models/todo.model"
 import type { IChangeEvent } from "@rjsf/core"
 import { withTheme } from "@rjsf/core"
 import { Theme as shadcnTheme } from "@rjsf/shadcn"
@@ -11,22 +11,24 @@ import { zodToJsonSchema } from "zod-to-json-schema"
 
 const Form = withTheme(shadcnTheme)
 
-const fields = ["title", "completed"] as const
+// const fields = ["title", "completed", "tested", "detail"] as const
 
-type TodoPickFields = Partial<Record<keyof typeof TodoSchema.shape, true>>
-const result = Object.fromEntries(
-  fields.map((f) => [f, true])
-) as TodoPickFields
+// type TodoPickFields = Partial<Record<keyof typeof TodoSchema.shape, true>>
+// const result = Object.fromEntries(
+//   fields.map((f) => [f, true])
+// ) as TodoPickFields
 
-const jsonSchema = zodToJsonSchema(TodoSchema.pick(result)) as Record<
-  string,
-  unknown
->
+// const jsonSchema = zodToJsonSchema(TodoSchema.pick(result)) as Record<
+//   string,
+//   unknown
+// >
+
+const jsonSchema = zodToJsonSchema(TodoUpdateSchema) as Record<string, unknown>
 
 const widgets = {
-  CheckboxWidget: ({ value, onChange }: any) => (
+  CheckboxWidget: ({ value, onChange, label }: any) => (
     <label className="flex items-center gap-2">
-      <span>Completed</span>
+      <span>{label}</span>
       <Switch checked={!!value} onCheckedChange={onChange} />
     </label>
   ),
@@ -38,24 +40,25 @@ const uiSchema = {
       classNames: "capitalize",
     },
   },
-  completed: {
-    "ui:options": {
-      classNames: "capitalize",
-    },
-  },
 }
 
 export default function UpdateTodo({ todo }: { todo: Todo }) {
   function handleSubmit({ formData }: IChangeEvent) {
     const fd = new FormData()
+    // fields.map((f) => {
+    //   if (formData[f] !== undefined) {
+    //     fd.set(f, formData[f])
+    //   }
+    // })
 
-    fd.set("title", formData.title)
-    fd.set("completed", formData.completed)
+    for (const key in formData) {
+      if (formData[key] !== undefined) {
+        fd.set(key, formData[key])
+      }
+    }
 
     updateTodo(fd, todo.id)
   }
-
-  const { title, completed } = todo
 
   function pick<T, K extends readonly (keyof T)[]>(
     obj: T,
@@ -66,12 +69,12 @@ export default function UpdateTodo({ todo }: { todo: Todo }) {
       K[number]
     >
   }
-  const result = pick(todo, fields)
+  const result = pick(todo, Object.keys(TodoUpdateSchema.shape) as (keyof Todo)[])
 
   return (
     <Form
       schema={jsonSchema}
-      uiSchema={uiSchema}
+      // uiSchema={uiSchema}
       formData={result}
       validator={validator}
       onSubmit={handleSubmit}

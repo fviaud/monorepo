@@ -10,11 +10,18 @@ export default async function EditTodoPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const todo = await getTodo(id)
+  let todo = await getTodo(id)
+
+  if (!todo) {
+    return <div>Todo not found</div>
+  }
+
+  const todo2 = { ...todo, tested: !!todo.tested }
+  console.log("todo2", todo2)
 
   return (
     <div className="container mx-auto">
-      <Formulaire todo={todo} />
+      <Formulaire todo={todo2} />
     </div>
   )
 }
