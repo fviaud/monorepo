@@ -10,19 +10,6 @@ import { Switch } from "@workspace/ui/components/switch"
 import { zodToJsonSchema } from "zod-to-json-schema"
 
 const Form = withTheme(shadcnTheme)
-
-// const fields = ["title", "completed", "tested", "detail"] as const
-
-// type TodoPickFields = Partial<Record<keyof typeof TodoSchema.shape, true>>
-// const result = Object.fromEntries(
-//   fields.map((f) => [f, true])
-// ) as TodoPickFields
-
-// const jsonSchema = zodToJsonSchema(TodoSchema.pick(result)) as Record<
-//   string,
-//   unknown
-// >
-
 const jsonSchema = zodToJsonSchema(TodoUpdateSchema) as Record<string, unknown>
 
 const widgets = {
