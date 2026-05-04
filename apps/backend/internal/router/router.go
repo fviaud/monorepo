@@ -4,13 +4,14 @@ import (
 	"backend/internal/handler"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func New() *gin.Engine {
+func New(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
 	h := handler.New()
-	t := handler.NewTodoHandler()
+	t := handler.NewTodoHandler(db)
 
 	v1 := r.Group("/api/v1")
 	{

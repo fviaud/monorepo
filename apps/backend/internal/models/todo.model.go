@@ -13,3 +13,8 @@ type Todo struct {
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
+
+type UpdateTodoInput struct {
+	Title     *string `json:"title"`
+	Completed *bool   `json:"completed"`
+}

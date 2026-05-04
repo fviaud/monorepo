@@ -1,24 +1,26 @@
 package handler
 
 import (
+	"backend/internal/models"
 	"fmt"
 	"net/http"
 	"sync"
 
-	"backend/internal/models"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type TodoHandler struct {
 	mu    sync.RWMutex
 	items map[string]models.Todo
+	db    *gorm.DB
 }
 
-func NewTodoHandler() *TodoHandler {
+func NewTodoHandler(db *gorm.DB) *TodoHandler {
 	return &TodoHandler{
 		items: make(map[string]models.Todo),
+		db:    db,
 	}
 }
 
@@ -27,14 +29,16 @@ func (h *TodoHandler) Health(c *gin.Context) {
 }
 
 func (h *TodoHandler) ListItems(c *gin.Context) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
+	// h.mu.RLock()
+	// defer h.mu.RUnlock()
 
-	items := make([]models.Todo, 0, len(h.items))
-	for _, item := range h.items {
-		items = append(items, item)
+	var todos []models.Todo
+	if err := h.db.Find(&todos).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch todos"})
+		return
 	}
-	c.JSON(http.StatusOK, items)
+
+	c.JSON(http.StatusOK, todos)
 }
 
 func (h *TodoHandler) CreateItem(c *gin.Context) {
@@ -44,24 +48,37 @@ func (h *TodoHandler) CreateItem(c *gin.Context) {
 		return
 	}
 
-	h.mu.Lock()
-	defer h.mu.Unlock()
+	// h.mu.Lock()
+	// defer h.mu.Unlock()
 
-	id := uuid.New()
-	newTodo.ID = id
-	h.items[id.String()] = newTodo
+	// id := uuid.New()
+	newTodo.ID = uuid.New()
+	if err := h.db.Create(&newTodo).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create todo"})
+		return
+	}
 	c.JSON(http.StatusCreated, newTodo)
 }
 
 func (h *TodoHandler) GetItem(c *gin.Context) {
 	id := c.Param("id")
 
-	h.mu.RLock()
-	defer h.mu.RUnlock()
+	// h.mu.RLock()
+	// defer h.mu.RUnlock()
 
-	item, ok := h.items[id]
-	if !ok {
-		c.JSON(http.StatusNotFound, gin.H{"error": "item not found"})
+	// item, ok := h.items[id]
+	// if !ok {
+	// 	c.JSON(http.StatusNotFound, gin.H{"error": "item not found"})
+	// 	return
+	// }
+
+	var item models.Todo
+	if err := h.db.First(&item, "id = ?", id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "todo not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch todo"})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, item)
@@ -70,42 +87,46 @@ func (h *TodoHandler) GetItem(c *gin.Context) {
 func (h *TodoHandler) UpdateItem(c *gin.Context) {
 	id := c.Param("id")
 
-	var item models.Todo
+	var item models.UpdateTodoInput
 	if err := c.ShouldBindJSON(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
-	fmt.Printf("Received update for fred ID %s: %+v\n", id, item)
+	fmt.Printf("Received update for ID %s: %+v\n", id, item)
 
-	parsedID, err := uuid.Parse(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
+	// updates := map[string]interface{}{
+	// 	"title":     item.Title,
+	// 	"completed": item.Completed,
+	// }
+
+	result := h.db.Model(&models.Todo{}).Where("id = ?", id).Updates(item)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update todo"})
 		return
 	}
-	item.ID = parsedID
-
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	if _, exists := h.items[id]; !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "item not found"})
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "todo not found"})
 		return
 	}
-	h.items[id] = item
-	c.JSON(http.StatusOK, item)
+
+	var updated models.Todo
+	h.db.First(&updated, "id = ?", id)
+	c.JSON(http.StatusOK, updated)
 }
 
 func (h *TodoHandler) DeleteItem(c *gin.Context) {
 	id := c.Param("id")
 
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	if _, exists := h.items[id]; !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "item not found"})
+	_, err := uuid.Parse(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
 		return
 	}
-	delete(h.items, id)
+
+	if err := h.db.Delete(&models.Todo{}, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete todo"})
+		return
+	}
 	c.Status(http.StatusNoContent)
 }
