@@ -22,7 +22,7 @@ export async function mutateApi(
   url: string,
   method: "POST" | "PUT" | "DELETE",
   body?: unknown
-): Promise<void> {
+): Promise<{ data?: unknown; error?: Error }> {
   const response = await fetch(url, {
     method,
     headers: { "Content-Type": "application/json" },
@@ -30,13 +30,15 @@ export async function mutateApi(
   })
 
   if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`)
+    const errorText = await response.json().catch(() => null)
+    return { error: new Error(`${errorText?.error || "Unknown error"}`) }
   }
 
   if (response.status === 204) {
-    return
+    console.log("API response status:", response.status)
+    return { data: { message: "Resource deleted successfully" } }
   }
-  const data = await response.json()
 
-  return data
+  const data = await response.json()
+  return { data }
 }

@@ -2,7 +2,7 @@ package handler
 
 import (
 	"backend/internal/models"
-	"fmt"
+	
 	"net/http"
 	"sync"
 
@@ -29,8 +29,7 @@ func (h *TodoHandler) Health(c *gin.Context) {
 }
 
 func (h *TodoHandler) ListItems(c *gin.Context) {
-	// h.mu.RLock()
-	// defer h.mu.RUnlock()
+
 
 	var todos []models.Todo
 	if err := h.db.Find(&todos).Error; err != nil {
@@ -47,14 +46,9 @@ func (h *TodoHandler) CreateItem(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
-
-	// h.mu.Lock()
-	// defer h.mu.Unlock()
-
-	// id := uuid.New()
 	newTodo.ID = uuid.New()
 	if err := h.db.Create(&newTodo).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create todo"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusCreated, newTodo)
@@ -62,16 +56,6 @@ func (h *TodoHandler) CreateItem(c *gin.Context) {
 
 func (h *TodoHandler) GetItem(c *gin.Context) {
 	id := c.Param("id")
-
-	// h.mu.RLock()
-	// defer h.mu.RUnlock()
-
-	// item, ok := h.items[id]
-	// if !ok {
-	// 	c.JSON(http.StatusNotFound, gin.H{"error": "item not found"})
-	// 	return
-	// }
-
 	var item models.Todo
 	if err := h.db.First(&item, "id = ?", id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -93,16 +77,10 @@ func (h *TodoHandler) UpdateItem(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Received update for ID %s: %+v\n", id, item)
-
-	// updates := map[string]interface{}{
-	// 	"title":     item.Title,
-	// 	"completed": item.Completed,
-	// }
 
 	result := h.db.Model(&models.Todo{}).Where("id = ?", id).Updates(item)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update todo"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
 	if result.RowsAffected == 0 {
