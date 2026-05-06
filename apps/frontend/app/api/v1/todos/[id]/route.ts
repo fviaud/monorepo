@@ -16,7 +16,12 @@ export async function GET(
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        status:
+          error instanceof Error && error.message === "404 Not Found"
+            ? 404
+            : 500,
+      }
     )
   }
 }
@@ -27,16 +32,21 @@ export async function DELETE(
 ) {
   const { id } = await params
   try {
-    const todo = (await deleteTodo(id)) as unknown as Todo
+    await deleteTodo(id)
 
     return NextResponse.json(
-      { message: "Todo deleted successfully" },
+      { message: "Deleted successfully" },
       { status: 200 }
     )
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      {
+        status:
+          error instanceof Error && error.message === "404 Not Found"
+            ? 404
+            : 500,
+      }
     )
   }
 }

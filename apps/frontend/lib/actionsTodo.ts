@@ -47,6 +47,10 @@ export async function updateTodo(formData: FormData, id: string) {
 }
 
 export async function deleteTodo(id: string) {
-  await mutateApi(getTodoPath(id), "DELETE")
-  return true
+  try {
+    await mutateApi(getTodoPath(id), "DELETE")
+    return true
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : "Unknown error")
+  }
 }

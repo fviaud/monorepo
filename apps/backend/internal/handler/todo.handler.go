@@ -29,14 +29,11 @@ func (h *TodoHandler) Health(c *gin.Context) {
 }
 
 func (h *TodoHandler) ListItems(c *gin.Context) {
-
-
 	var todos []models.Todo
 	if err := h.db.Find(&todos).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch todos"})
 		return
 	}
-
 	c.JSON(http.StatusOK, todos)
 }
 
@@ -71,14 +68,11 @@ func (h *TodoHandler) GetItem(c *gin.Context) {
 
 func (h *TodoHandler) UpdateItem(c *gin.Context) {
 	id := c.Param("id")
-
 	var item models.UpdateTodoInput
 	if err := c.ShouldBindJSON(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
-
-
 	result := h.db.Model(&models.Todo{}).Where("id = ?", id).Updates(item)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
@@ -103,8 +97,13 @@ func (h *TodoHandler) DeleteItem(c *gin.Context) {
 		return
 	}
 
-	if err := h.db.Delete(&models.Todo{}, "id = ?", id).Error; err != nil {
+	result := h.db.Delete(&models.Todo{}, "id = ?", id)
+	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete todo"})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "todo not found"})
 		return
 	}
 	c.Status(http.StatusNoContent)

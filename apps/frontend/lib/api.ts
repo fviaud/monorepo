@@ -30,13 +30,11 @@ export async function mutateApi(
   })
 
   if (!response.ok) {
-    const errorText = await response.json().catch(() => null)
-    return { error: new Error(`${errorText?.error || "Unknown error"}`) }
+    throw new Error(`${response.status} ${response.statusText}`)
   }
 
   if (response.status === 204) {
-    console.log("API response status:", response.status)
-    return { data: { message: "Resource deleted successfully" } }
+    return { data: null }
   }
 
   const data = await response.json()
