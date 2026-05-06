@@ -7,10 +7,12 @@ import { Theme as shadcnTheme } from "@rjsf/shadcn"
 import validator from "@rjsf/validator-ajv8"
 import { Button } from "@workspace/ui/components/button"
 import { Switch } from "@workspace/ui/components/switch"
+import { redirect } from "next/navigation"
 import { zodToJsonSchema } from "zod-to-json-schema"
 
 const Form = withTheme(shadcnTheme)
 const jsonSchema = zodToJsonSchema(TodoUpdateSchema) as Record<string, unknown>
+const todosRoute = "/todos"
 
 const widgets = {
   CheckboxWidget: ({ value, onChange, label }: any) => (
@@ -32,11 +34,6 @@ const uiSchema = {
 export default function UpdateTodo({ todo }: { todo: Todo }) {
   function handleSubmit({ formData }: IChangeEvent) {
     const fd = new FormData()
-    // fields.map((f) => {
-    //   if (formData[f] !== undefined) {
-    //     fd.set(f, formData[f])
-    //   }
-    // })
 
     for (const key in formData) {
       if (formData[key] !== undefined) {
@@ -45,6 +42,7 @@ export default function UpdateTodo({ todo }: { todo: Todo }) {
     }
 
     updateTodo(fd, todo.id)
+    redirect(todosRoute)
   }
 
   function pick<T, K extends readonly (keyof T)[]>(
@@ -56,7 +54,10 @@ export default function UpdateTodo({ todo }: { todo: Todo }) {
       K[number]
     >
   }
-  const result = pick(todo, Object.keys(TodoUpdateSchema.shape) as (keyof Todo)[])
+  const result = pick(
+    todo,
+    Object.keys(TodoUpdateSchema.shape) as (keyof Todo)[]
+  )
 
   return (
     <Form

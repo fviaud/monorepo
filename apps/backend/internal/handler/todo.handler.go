@@ -5,7 +5,7 @@ import (
 	
 	"net/http"
 	"sync"
-
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -56,6 +56,7 @@ func (h *TodoHandler) CreateItem(c *gin.Context) {
 
 func (h *TodoHandler) GetItem(c *gin.Context) {
 	id := c.Param("id")
+	fmt.Printf("Fetching todo with ID: %s\n", id)
 	var item models.Todo
 	if err := h.db.First(&item, "id = ?", id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {

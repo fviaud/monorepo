@@ -1,14 +1,11 @@
 "use server"
-
 import { fetchApi, mutateApi } from "@/lib/api"
 import { Todo, TodoSchema } from "@/models/todo.model"
-import { redirect } from "next/navigation"
 
 const apiUrl = process.env.API_URL || "http://localhost:8080"
 const apiVersion = process.env.API_VERSION || "v1"
 const apiItems = "todos"
 const todosPath = `${apiUrl}/api/${apiVersion}/${apiItems}`
-const todosRoute = "/todos"
 
 const getTodoPath = (id?: string) => (id ? `${todosPath}/${id}` : todosPath)
 
@@ -17,7 +14,12 @@ export async function getTodos() {
 }
 
 export async function getTodo(id: string) {
-  return fetchApi<Todo>(getTodoPath(id), TodoSchema)
+  try {
+    const todo = await fetchApi<Todo>(getTodoPath(id), TodoSchema)
+    return todo
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : "Unknown error")
+  }
 }
 
 export async function createTodo(formData: FormData) {
@@ -29,7 +31,7 @@ export async function createTodo(formData: FormData) {
     completed,
   })
 
-  redirect(todosRoute)
+  return true
 }
 
 export async function updateTodo(formData: FormData, id: string) {
@@ -41,12 +43,10 @@ export async function updateTodo(formData: FormData, id: string) {
     title,
     completed,
   })
-
-  redirect(todosRoute)
+  return true
 }
 
 export async function deleteTodo(id: string) {
   await mutateApi(getTodoPath(id), "DELETE")
-
-  redirect(todosRoute)
+  return true
 }

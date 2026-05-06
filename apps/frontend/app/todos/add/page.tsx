@@ -7,6 +7,9 @@ import { Theme as shadcnTheme } from "@rjsf/shadcn"
 import validator from "@rjsf/validator-ajv8"
 import { Button } from "@workspace/ui/components/button"
 import { zodToJsonSchema } from "zod-to-json-schema"
+import { redirect } from "next/navigation"
+
+const todosRoute = "/todos"
 
 const Form = withTheme(shadcnTheme)
 const jsonSchema = zodToJsonSchema(TodoSchema.pick({ title: true })) as Record<
@@ -19,6 +22,7 @@ export default function AddTodoPage() {
     const fd = new FormData()
     fd.set("title", formData.title)
     createTodo(fd)
+    redirect(todosRoute)
   }
 
   return (
