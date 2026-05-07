@@ -1,0 +1,27 @@
+info:
+  name: Update one todo
+  type: http
+  seq: 1
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/api/{{version}}/todos/:id"
+  params:
+    - name: id
+      value: 20bad804-572e-4c86-84a1-b99bd58afdd5
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "title": "fred",
+        "completed": true
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+​

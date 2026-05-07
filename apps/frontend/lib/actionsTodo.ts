@@ -1,6 +1,6 @@
 "use server"
 import { fetchApi, mutateApi } from "@/lib/api"
-import { Todo, TodoSchema } from "@/models/todo.model"
+import { Todo, TodoSchema, TodoUpdateSchema } from "@/models/todo.model"
 
 const apiUrl = process.env.API_URL || "http://localhost:8080"
 const apiVersion = process.env.API_VERSION || "v1"
@@ -23,13 +23,14 @@ export async function getTodo(id: string) {
 }
 
 export async function createTodo(formData: FormData) {
-  const title = formData.get("title") as string
-  const completed = formData.get("completed") === "on"
+  const jsonData = Object.fromEntries(formData)
+  const parsed = TodoUpdateSchema.safeParse(jsonData)
 
-  await mutateApi(getTodoPath(), "POST", {
-    title,
-    completed,
-  })
+  if (!parsed.success) {
+    throw new Error("Invalid form data")
+  }
+
+  await mutateApi(getTodoPath(), "POST", parsed.data)
 
   return true
 }

@@ -1,0 +1,18 @@
+info:
+  name: Get one todo
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/{{version}}/todos/:id"
+  params:
+    - name: id
+      value: 3dd142a7-8379-434d-b95d-9ba1705127c0
+      type: path
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
